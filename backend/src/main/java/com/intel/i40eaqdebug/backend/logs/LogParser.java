@@ -16,8 +16,24 @@ import java.util.regex.Pattern;
 
 public class LogParser implements LogAdapter {
 
+    /*
+    Junk filter will take the format of time stamp and anything prefixed with i40e
+    This will take flash_update_fail.log, normal_trace_dmesg.log, and normal_trace_syslog
+
+    parsing of lanconf.log needs another regex because we cannot use i40e
+        What we can use:
+        AQ.+ can work for AQTX and AQ CM
+        cookie.+
+        param.+
+        addr.+
+        0x[0-9a-f]{4,}.+
+
+    We should get desc and buffer for the readDiscreteEntries, cookies, params, and addr with the buffer content
+    */
     Pattern BEGIN = Pattern.compile("desc and buffer");
-    Pattern JUNK_FILTER = Pattern.compile("\\[([0-9]+)\\.([0-9]+)] (i40e .+)");
+    Pattern JUNK_FILTER = Pattern.compile("((\\[([0-9]+)\\.([0-9]+)]))? (i40e .+)");
+    Pattern LANCONF_JUNK_FILTER =
+            Pattern.compile("([0-9a-f]{3,}\\:[0-9a-f]{3,}):\\s+(AQTX.+|AQ CMD.+|cookie.+|param.+|addr.+|0x[0-9a-f]{4}.+)");
 
     public Queue<LogEntry> getEntriesSequential(File f, int startIdx, int count) {
         try {
